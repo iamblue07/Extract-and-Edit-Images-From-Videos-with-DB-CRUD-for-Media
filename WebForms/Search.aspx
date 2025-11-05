@@ -46,7 +46,7 @@
     </style>
 </head>
 <body>
-    <form id="form1" runat="server">
+    <form id="form1" runat="server" enctype="multipart/form-data">
         <div class="wrap">
             <h2>Căutare după ID-ul videoclipului</h2>
 
@@ -57,6 +57,35 @@
                 <asp:Button ID="btnBack" runat="server" Text="⟵ Înapoi" CssClass="btn btn-blue" OnClick="btnBack_Click" />
                 <asp:Button ID="btnDelete" runat="server" Text="Șterge" CssClass="btn btn-red" OnClick="btnDelete_Click" />
             </div>
+            <h2>Căutare după imagine (semantic)</h2>
+            <div class="search-row">
+                <asp:FileUpload ID="fileQuery" runat="server" CssClass="txt-ctrl" />
+
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <label for="rngThreshold" style="font-size:13px;color:var(--muted);margin-right:6px;">Nivel similitudine: mai mic = mai putin similar</label>
+                    <input id="rngThreshold" type="range" min="1" max="100" value="10" oninput="document.getElementById('rngVal').innerText = this.value;" />
+                    <span id="rngVal" style="min-width:30px;text-align:center;display:inline-block">10</span>
+                    <asp:TextBox ID="txtThreshold" runat="server" Text="10" Style="display:none" />
+
+                    <asp:Button ID="btnSearchByImage" runat="server" Text="Caută imagini similare"
+                                CssClass="btn btn-green" OnClick="btnSearchByImage_Click"
+                                OnClientClick="return syncThreshold();" />
+                    <asp:Button ID="btnClearSimilar" runat="server" Text="Curăță" CssClass="btn btn-blue" OnClick="btnClearSimilar_Click" />
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                function syncThreshold() {
+                    try {
+                        var tb = document.getElementById('<%= txtThreshold.ClientID %>');
+                        var rng = document.getElementById('rngThreshold');
+                        if (tb && rng) tb.value = rng.value;
+                    } catch (e) {
+                    }
+                    return true;
+                }
+            </script>
+
 
             <div class="results">
                 <div class="nav">
@@ -72,6 +101,11 @@
                 </div>
             </div>
 
+            <div style="margin-top:10px; display:flex; gap:12px; justify-content:center; align-items:center;">
+                <asp:Button ID="btnDownload" runat="server" Text="Descarcă" CssClass="btn btn-blue"
+            OnClientClick="return downloadCurrentImage();" />
+            </div>
+
             <div class="meta">
                 <asp:Label ID="lblMeta" runat="server" Text=""></asp:Label>
             </div>
@@ -81,5 +115,81 @@
             </div>
         </div>
     </form>
+            <script type="text/javascript">
+          function downloadCurrentImage() {
+            try {
+              var img = document.getElementById('<%= imgSearch.ClientID %>');
+              if (!img || !img.src) {
+                alert('Nu este încărcată nicio imagine.');
+                return false;
+              }
+
+              var src = img.src;
+
+              if (src.indexOf('data:') === 0) {
+                var mime = src.substring(5, src.indexOf(';'));
+                var ext = '.jpg';
+                if (mime === 'image/png') ext = '.png';
+                else if (mime === 'image/gif') ext = '.gif';
+                else if (mime === 'image/webp') ext = '.webp';
+                else if (mime === 'image/tiff') ext = '.tif';
+                else if (mime === 'image/bmp') ext = '.bmp';
+
+                var a = document.createElement('a');
+                a.href = src;
+                a.download = 'image_' + Date.now() + ext;
+                // Firefox requires the link to be in the DOM
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return false; // prevent postback
+              }
+
+              // Else: src is a URL (likely /Processed/Image?id=123). Fetch it and download.
+              // Use credentials so same-session cookies are sent.
+              fetch(src, { credentials: 'include' })
+                .then(function (resp) {
+                  if (!resp.ok) throw new Error('Răspuns nereușit: ' + resp.status);
+                  return resp.blob();
+                })
+                .then(function (blob) {
+                  var url = URL.createObjectURL(blob);
+                  var a = document.createElement('a');
+                  a.href = url;
+
+                  // try infer extension from blob.type
+                  var ext = '.jpg';
+                  if (blob.type) {
+                    if (blob.type === 'image/png') ext = '.png';
+                    else if (blob.type === 'image/gif') ext = '.gif';
+                    else if (blob.type === 'image/webp') ext = '.webp';
+                    else if (blob.type === 'image/tiff') ext = '.tif';
+                    else if (blob.type === 'image/bmp') ext = '.bmp';
+                    else if (blob.type === 'image/jpeg') ext = '.jpg';
+                  }
+
+                  a.download = 'image_' + Date.now() + ext;
+                  document.body.appendChild(a);
+                  a.click();
+
+                  // cleanup
+                  setTimeout(function () {
+                    URL.revokeObjectURL(url);
+                    try { document.body.removeChild(a); } catch (e) { /* ignore */ }
+                  }, 150);
+
+                })
+                .catch(function (err) {
+                  alert('Descărcare eșuată: ' + err.message);
+                });
+
+              return false; // prevent postback
+            } catch (ex) {
+              alert('Eroare la descărcare: ' + ex.message);
+              return false;
+            }
+          }
+        </script>
+
 </body>
 </html>
