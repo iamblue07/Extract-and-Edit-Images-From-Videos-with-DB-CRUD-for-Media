@@ -16,8 +16,6 @@ namespace BDM_P.Controllers
             return View(items);
         }
 
-        // Streams the video bytes back to the client.
-        // Attempts to set a reasonable MIME type based on the stored file name extension.
         public ActionResult Video(int id)
         {
             var data = videoService.GetVideoById(id);
@@ -31,9 +29,10 @@ namespace BDM_P.Controllers
             {
                 Response.AppendHeader("X-Video-Size", data.Length.ToString());
             }
-            catch { /* ignore header set errors */ }
+            catch { 
+            
+            }
 
-            // Try to resolve a content-type from the stored name
             var name = videoService.GetVideoNameById(id) ?? string.Empty;
             var mime = GetMimeTypeFromName(name) ?? "application/octet-stream";
 
@@ -41,7 +40,9 @@ namespace BDM_P.Controllers
             {
                 Response.ContentType = mime;
             }
-            catch { /* ignore */ }
+            catch { 
+            
+            }
 
             Response.AppendHeader("Access-Control-Allow-Origin", "*");
             return File(data, mime);
@@ -63,7 +64,6 @@ namespace BDM_P.Controllers
             return Content("OK");
         }
 
-        // rudimentary mapping by extension -> mime
         private string GetMimeTypeFromName(string name)
         {
             if (string.IsNullOrEmpty(name)) return null;

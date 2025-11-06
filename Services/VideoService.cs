@@ -10,7 +10,6 @@ namespace BDM_P.Services
 {
     public class VideoService
     {
-        // Insert a video using stored procedure psInsVid (p_id, p_blob, p_vid_name)
         public void Insert(int id, byte[] data, string videoName)
         {
             using (var conn = Db.GetConn())
@@ -24,7 +23,6 @@ namespace BDM_P.Services
             }
         }
 
-        // List (id + name)
         public List<VideoItem> GetAll()
         {
             var list = new List<VideoItem>();
@@ -44,7 +42,6 @@ namespace BDM_P.Services
             return list;
         }
 
-        // Return raw video bytes for streaming
         public byte[] GetVideoById(int id)
         {
             using (var conn = Db.GetConn())
@@ -55,15 +52,13 @@ namespace BDM_P.Services
                 {
                     if (r.Read() && !r.IsDBNull(0))
                     {
-                        var blob = r.GetOracleBlob(0); // OracleBlob
+                        var blob = r.GetOracleBlob(0);
                         return blob.Value;
                     }
                 }
             }
             return null;
         }
-
-        // Return the stored video name (useful to derive MIME type)
         public string GetVideoNameById(int id)
         {
             using (var conn = Db.GetConn())
@@ -75,7 +70,6 @@ namespace BDM_P.Services
             }
         }
 
-        // next id helper (same pattern you used)
         public int GetNextId()
         {
             using (var conn = Db.GetConn())
@@ -86,7 +80,6 @@ namespace BDM_P.Services
             }
         }
 
-        // Șterge videoclipul + imaginile asociate (tranzacție)
         public void DeleteById(int id)
         {
             using (var conn = Db.GetConn())
@@ -94,7 +87,6 @@ namespace BDM_P.Services
             {
                 try
                 {
-                    // Șterge imaginile procesate legate de video
                     using (var cmd = new OracleCommand("DELETE FROM BDM_P_PROCESSED_IMAGES WHERE vid_id = :id", conn))
                     {
                         cmd.Transaction = tran;
@@ -103,7 +95,6 @@ namespace BDM_P.Services
                         cmd.Parameters.Clear();
                     }
 
-                    // Șterge imaginile neprocesate legate de video
                     using (var cmd = new OracleCommand("DELETE FROM BDM_P_UNPROCESSED_IMAGES WHERE vid_id = :id", conn))
                     {
                         cmd.Transaction = tran;
@@ -112,20 +103,20 @@ namespace BDM_P.Services
                         cmd.Parameters.Clear();
                     }
 
-                    // Șterge înregistrarea video
                     using (var cmd = new OracleCommand("DELETE FROM BDM_P_VIDEOS WHERE id = :id", conn))
                     {
                         cmd.Transaction = tran;
                         cmd.Parameters.Add("id", OracleDbType.Int32).Value = id;
                         int affected = cmd.ExecuteNonQuery();
-                        // dacă affected == 0 -> niciun rând; dar acceptăm situația
                     }
 
                     tran.Commit();
                 }
                 catch
                 {
-                    try { tran.Rollback(); } catch { /* ignore */ }
+                    try { tran.Rollback(); } catch { 
+                    
+                    }
                     throw;
                 }
             }

@@ -9,7 +9,6 @@ namespace BDM_P.Services
 {
     public class ProcessedService
     {
-        // Insert now accepts nullable video id (vidId).
         public void Insert(int id, byte[] data, int? vidId)
         {
             using (var conn = Db.GetConn())

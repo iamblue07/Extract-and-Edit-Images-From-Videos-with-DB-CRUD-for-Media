@@ -22,7 +22,6 @@ namespace BDM_P.Controllers
             return View();
         }
 
-        // Upload now accepts vidId instead of vidName
         [HttpPost]
         public ActionResult Upload(int id, int? vidId)
         {
@@ -57,7 +56,9 @@ namespace BDM_P.Controllers
                 Response.AppendHeader("X-Image-Size", data.Length.ToString());
                 Response.ContentType = "image/jpeg";
             }
-            catch { /* ignore set header errors */ }
+            catch { 
+            
+            }
 
             Response.AppendHeader("Access-Control-Allow-Origin", "*");
             return File(data, "image/jpeg");
@@ -65,7 +66,7 @@ namespace BDM_P.Controllers
 
 
         [HttpGet]
-        public ActionResult Process(int id) // id = unprocessed id
+        public ActionResult Process(int id)
         {
             ViewBag.UnprocessedId = id;
             return View();
@@ -77,7 +78,6 @@ namespace BDM_P.Controllers
             var f = Request.Files.Count > 0 ? Request.Files[0] : null;
             if (f == null || f.ContentLength == 0) return new HttpStatusCodeResult(400, "No file uploaded");
 
-            // Get the video id from the unprocessed image to maintain the link
             int? videoId = s.GetVideoIdByUnprocessedId(unprocessedId);
 
             using (var ms = new MemoryStream())

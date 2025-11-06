@@ -5,7 +5,6 @@
     <title>Prelucrează imagine</title>
     <meta charset="utf-8" />
     <style>
-        /* keep your existing styles (omitted here for brevity) */
         :root{--blue:#007acc;--green:#28a745;--card:#fff;--bg:#f7f9fb;--muted:#333;--radius:10px;--gap:12px;}
         body{background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif}
         .wrap{max-width:960px;margin:30px auto;background:var(--card);padding:20px;border-radius:var(--radius)}
@@ -66,7 +65,6 @@
         (function init() {
             originalDataUrl = '<%= (hfImageUrl.Value ?? "") %>';
             if (!originalDataUrl) {
-                // try hidden original by server (hfOriginalDataUri) value if set on server
                 originalDataUrl = hfOriginal.value || '';
             }
             if (!originalDataUrl) {
@@ -83,18 +81,15 @@
             document.querySelectorAll('button, select, input').forEach(el => el.disabled = disabled);
         }
 
-        // Apply edit server-side
         document.getElementById('btnApplyEdit').addEventListener('click', () => {
             if (!currentDataUrl) { status.textContent = "Nu există imagine."; return; }
             const op = ddl.value;
             const param = tb.value || '';
 
             status.textContent = 'Se procesează imaginea pe server...';
-            // pass the currentDataUrl (data URI) so server does not need to fetch the image by URL
             PageMethods.ApplyEditServer(currentDataUrl, op, param,
                 function (response) {
                     try {
-                        // response is a JSON stringified object: { success:true, dataUri: "data:..." , error: "..." }
                         const r = JSON.parse(response);
                         if (!r.success) {
                             status.textContent = 'Eroare la procesare: ' + (r.error || 'unknown');
@@ -113,7 +108,6 @@
             );
         });
 
-        // Reset to original
         document.getElementById('btnReset').addEventListener('click', () => {
             if (!originalDataUrl) return;
             currentDataUrl = originalDataUrl;
@@ -121,12 +115,10 @@
             status.textContent = 'Reset la original.';
         });
 
-        // Save into DB (processed)
         document.getElementById('btnSaveDb').addEventListener('click', () => {
             if (!currentDataUrl) { status.textContent = 'Nu există imagine de salvat.'; return; }
             status.textContent = 'Se salvează imaginea procesată...';
 
-            // decode data URI and post via PageMethods.SaveProcessedImage (existing)
             PageMethods.SaveProcessedImage(currentDataUrl, 'processed_' + (new Date()).getTime() + '.jpg',
                 function (response) {
                     try {

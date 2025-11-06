@@ -1,10 +1,9 @@
-﻿// file: Services/SimilarityService.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using Oracle.ManagedDataAccess.Client;
 using Oracle.ManagedDataAccess.Types;
-using BDM_P.Data; // assumes Db.GetConn() exists
+using BDM_P.Data;
 
 namespace BDM_P.Services
 {
@@ -14,7 +13,6 @@ namespace BDM_P.Services
         {
             public bool IsProcessed { get; set; }
             public int Id { get; set; }
-            // A thumbnail url that uses your existing controllers
             public string ThumbUrl => IsProcessed ? $"/Processed/Image?id={Id}" : $"/Unprocessed/Image?id={Id}";
             public string Key => $"{(IsProcessed ? "P" : "U")}:{Id}";
         }

@@ -138,15 +138,12 @@
                 var a = document.createElement('a');
                 a.href = src;
                 a.download = 'image_' + Date.now() + ext;
-                // Firefox requires the link to be in the DOM
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 return false; // prevent postback
               }
 
-              // Else: src is a URL (likely /Processed/Image?id=123). Fetch it and download.
-              // Use credentials so same-session cookies are sent.
               fetch(src, { credentials: 'include' })
                 .then(function (resp) {
                   if (!resp.ok) throw new Error('Răspuns nereușit: ' + resp.status);
@@ -157,7 +154,6 @@
                   var a = document.createElement('a');
                   a.href = url;
 
-                  // try infer extension from blob.type
                   var ext = '.jpg';
                   if (blob.type) {
                     if (blob.type === 'image/png') ext = '.png';
@@ -172,10 +168,11 @@
                   document.body.appendChild(a);
                   a.click();
 
-                  // cleanup
                   setTimeout(function () {
                     URL.revokeObjectURL(url);
-                    try { document.body.removeChild(a); } catch (e) { /* ignore */ }
+                      try { document.body.removeChild(a); } catch (e) {
+
+                      }
                   }, 150);
 
                 })
@@ -183,7 +180,7 @@
                   alert('Descărcare eșuată: ' + err.message);
                 });
 
-              return false; // prevent postback
+              return false;
             } catch (ex) {
               alert('Eroare la descărcare: ' + ex.message);
               return false;

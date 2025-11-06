@@ -14,7 +14,6 @@ namespace BDM_P.WebForms
             if (!IsPostBack)
             {
                 string videoRelPath = Session["CurrentVideoRelativePath"] as string;
-                // get the db video id from session (if any)
                 var vidObj = Session["CurrentVideoDbId"];
                 if (vidObj != null)
                     hfVideoId.Value = vidObj.ToString();
@@ -36,8 +35,6 @@ namespace BDM_P.WebForms
             Response.Redirect("Main.aspx");
         }
 
-        // Salvează dataURI în tabela de imagini neprelucrate (BLOB) și returnează URL-ul /Unprocessed/Image?id=...
-        // EnableSession = true pentru a citi session
         [WebMethod(EnableSession = true)]
         public static string SaveFrame(string dataUri, string fileName)
         {
@@ -56,7 +53,6 @@ namespace BDM_P.WebForms
                 var svc = new UnprocessedService();
                 int id = svc.GetNextId();
 
-                // Obține vid_id din sesiune (nullable)
                 var vidObj = HttpContext.Current.Session["CurrentVideoDbId"];
                 int? vidId = vidObj == null ? (int?)null : Convert.ToInt32(vidObj);
 
@@ -71,7 +67,6 @@ namespace BDM_P.WebForms
             }
         }
 
-        // Salvează și setează sesiunea SelectedImage pentru pagina de prelucrare
         [WebMethod(EnableSession = true)]
         public static string SaveAndSelectFrame(string dataUri, string fileName)
         {

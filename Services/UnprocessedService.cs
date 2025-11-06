@@ -9,7 +9,6 @@ namespace BDM_P.Services
 {
     public class UnprocessedService
     {
-        // Insert now accepts nullable video id (vidId).
         public void Insert(int id, byte[] data, int? vidId)
         {
             using (var conn = Db.GetConn())
@@ -18,7 +17,6 @@ namespace BDM_P.Services
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add("p_id", OracleDbType.Int32).Value = id;
                 cmd.Parameters.Add("p_blob", OracleDbType.Blob).Value = data;
-                // New param name: p_vid_id (assumes your PL/SQL proc updated to accept p_vid_id NUMBER)
                 var pVid = cmd.Parameters.Add("p_vid_id", OracleDbType.Int32);
                 pVid.Value = vidId.HasValue ? (object)vidId.Value : DBNull.Value;
                 cmd.ExecuteNonQuery();
@@ -48,7 +46,6 @@ namespace BDM_P.Services
         public byte[] GetImageById(int id)
         {
             using (var conn = Db.GetConn())
-            // use object alias and ask img.getContent() to return BLOB directly
             using (var cmd = new OracleCommand("SELECT v.img.getContent() FROM BDM_P_UNPROCESSED_IMAGES v WHERE id = :id", conn))
             {
                 cmd.Parameters.Add("id", OracleDbType.Int32).Value = id;
@@ -74,7 +71,6 @@ namespace BDM_P.Services
             }
         }
 
-        // helper to get vid_id for an unprocessed image
         public int? GetVideoIdByUnprocessedId(int unprocessedId)
         {
             using (var conn = Db.GetConn())

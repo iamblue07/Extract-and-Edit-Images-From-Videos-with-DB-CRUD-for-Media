@@ -30,13 +30,14 @@ namespace BDM_P.Controllers
                 Response.AppendHeader("X-Image-Size", data.Length.ToString());
                 Response.ContentType = "image/jpeg";
             }
-            catch { /* ignore set header errors */ }
+            catch { 
+            
+            }
 
             Response.AppendHeader("Access-Control-Allow-Origin", "*");
             return File(data, "image/jpeg");
         }
 
-        // Upload now expects videoId to be passed (the linking id)
         [HttpPost]
         public ActionResult Upload(int processedId, int? videoId)
         {
