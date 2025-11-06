@@ -42,13 +42,13 @@ namespace BDM_P.WebForms
         protected global::System.Web.UI.WebControls.HiddenField hfImageUrl;
 
         /// <summary>
-        /// hfSelectedImageSession control.
+        /// hfOriginalDataUri control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfSelectedImageSession;
+        protected global::System.Web.UI.WebControls.HiddenField hfOriginalDataUri;
 
         /// <summary>
         /// imgToEdit control.

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BDM_P.Services;
+using System;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -13,37 +14,13 @@ namespace BDM_P.WebForms
         {
             if (!IsPostBack)
             {
-                var sel = Session["SelectedImage"] as string ?? "";
                 var selData = Session["SelectedImageData"] as string ?? "";
-
-                hfSelectedImageSession.Value = sel ?? "";
-
                 if (!string.IsNullOrEmpty(selData))
                 {
+                    hfOriginalDataUri.Value = selData;
                     hfImageUrl.Value = selData;
                     imgToEdit.Src = selData;
-                    return;
                 }
-
-                if (string.IsNullOrEmpty(sel))
-                {
-                    hfImageUrl.Value = "";
-                    imgToEdit.Src = "";
-                    return;
-                }
-
-                string abs;
-                try
-                {
-                    abs = VirtualPathUtility.ToAbsolute(sel);
-                }
-                catch
-                {
-                    abs = sel;
-                }
-
-                hfImageUrl.Value = abs;
-                imgToEdit.Src = abs;
             }
         }
 
@@ -52,7 +29,39 @@ namespace BDM_P.WebForms
             Response.Redirect("ViewImages.aspx");
         }
 
-        [WebMethod]
+        [WebMethod(EnableSession = true)]
+        public static string ApplyEditServer(string imageDataUri, string op, string param)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(imageDataUri))
+                    return "{\"success\":false,\"error\":\"No image data provided\"}";
+
+                var parts = imageDataUri.Split(',');
+                if (parts.Length != 2)
+                    return "{\"success\":false,\"error\":\"Invalid data URI\"}";
+
+                string base64 = parts[1];
+                byte[] imageBytes = Convert.FromBase64String(base64);
+
+                var procSvc = new ImageProcessingService();
+                byte[] processed = procSvc.ProcessImage(imageBytes, op, param);
+
+                if (processed == null || processed.Length == 0)
+                    return "{\"success\":false,\"error\":\"Processing returned empty result\"}";
+
+                string outBase64 = Convert.ToBase64String(processed);
+                string dataUri = "data:image/jpeg;base64," + outBase64;
+
+                return $"{{\"success\":true,\"dataUri\":\"{dataUri}\"}}";
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"success\":false,\"error\":\"{HttpUtility.JavaScriptStringEncode(ex.Message)}\"}}";
+            }
+        }
+
+        [WebMethod(EnableSession = true)]
         public static string SaveProcessedImage(string imageData, string imageName)
         {
             try
@@ -60,18 +69,13 @@ namespace BDM_P.WebForms
                 if (string.IsNullOrEmpty(imageData))
                     return "{\"success\":false,\"error\":\"No image data provided\"}";
 
-                // Extract base64 data from data URI
                 var base64Data = imageData.Split(',').Last();
                 var imageBytes = Convert.FromBase64String(base64Data);
 
-                // Get video id from session - this will link processed to unprocessed
                 var vidObj = HttpContext.Current.Session["CurrentVideoDbId"];
                 int? videoId = vidObj == null ? (int?)null : Convert.ToInt32(vidObj);
 
-                // Get service
                 var processedService = new Services.ProcessedService();
-
-                // Save processed image with video id
                 int processedId = processedService.GetNextId();
                 processedService.Insert(processedId, imageBytes, videoId);
 
@@ -79,10 +83,8 @@ namespace BDM_P.WebForms
             }
             catch (Exception ex)
             {
-                return $"{{\"success\":false,\"error\":\"{ex.Message}\"}}";
+                return $"{{\"success\":false,\"error\":\"{HttpUtility.JavaScriptStringEncode(ex.Message)}\"}}";
             }
         }
-
-        // ----------------- Helper Methods (removed ExtractVideoNameFromSession) -----------------
     }
 }

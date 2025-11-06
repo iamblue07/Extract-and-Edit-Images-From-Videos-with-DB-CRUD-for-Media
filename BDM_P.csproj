@@ -161,6 +161,7 @@
     <Compile Include="Models\UnprocessedImage.cs" />
     <Compile Include="Models\VideoItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ImageProcessingService.cs" />
     <Compile Include="Services\ProcessedService.cs" />
     <Compile Include="Services\SimilarityService.cs" />
     <Compile Include="Services\UnprocessedService.cs" />
